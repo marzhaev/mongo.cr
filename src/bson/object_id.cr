@@ -50,5 +50,9 @@ class BSON
       ts.tv_sec = t
       Time.new(ts, Time::Location::UTC)
     end
+
+    def to_json(json : JSON::Builder)
+      json.string(self.to_s[0..23])
+    end
   end
 end
