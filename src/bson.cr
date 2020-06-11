@@ -127,60 +127,60 @@ class BSON
     fetch(key) { raise IndexError.new }
   end
 
-  def []=(key, value : Int32)
+  def []=(key : String, value : Int32)
     LibBSON.bson_append_int32(handle, key, key.bytesize, value)
   end
 
-  def []=(key, value : Int64)
+  def []=(key : String, value : Int64)
     LibBSON.bson_append_int64(handle, key, key.bytesize, value)
   end
 
-  def []=(key, value : Binary)
+  def []=(key : String, value : Binary)
     LibBSON.bson_append_binary(handle, key, key.bytesize,
                                value.to_raw_type, value.data, value.data.size)
   end
 
-  def []=(key, value : Bool)
+  def []=(key : String, value : Bool)
     LibBSON.bson_append_bool(handle, key, key.bytesize, value)
   end
 
-  def []=(key, value : Float64|Float32)
+  def []=(key : String, value : Float64|Float32)
     LibBSON.bson_append_double(handle, key, key.bytesize, value.to_f64)
   end
 
-  def []=(key, value : MinKey)
+  def []=(key : String, value : MinKey)
     LibBSON.bson_append_minkey(handle, key, key.bytesize)
   end
 
-  def []=(key, value : MaxKey)
+  def []=(key : String, value : MaxKey)
     LibBSON.bson_append_maxkey(handle, key, key.bytesize)
   end
 
-  def []=(key, value : Nil)
+  def []=(key : String, value : Nil)
     LibBSON.bson_append_null(handle, key, key.bytesize)
   end
 
-  def []=(key, value : ObjectId)
+  def []=(key : String, value : ObjectId)
     LibBSON.bson_append_oid(handle, key, key.bytesize, value)
   end
 
-  def []=(key, value : String)
+  def []=(key : String, value : String)
     LibBSON.bson_append_utf8(handle, key, key.bytesize, value, value.bytesize)
   end
 
-  def []=(key, value : Symbol)
+  def []=(key : String, value : Symbol)
     LibBSON.bson_append_symbol(handle, key, key.bytesize, value, value.bytesize)
   end
 
-  def []=(key, value : Time)
+  def []=(key : String, value : Time)
     LibBSON.bson_append_date_time(handle, key, key.bytesize, value.to_utc.to_unix * 1000)
   end
 
-  def []=(key, value : Timestamp)
+  def []=(key : String, value : Timestamp)
     LibBSON.bson_append_timestamp(handle, key, key.bytesize, value.timestamp, value.increment)
   end
 
-  def []=(key, value : Code)
+  def []=(key : String, value : Code)
     if value.scope.empty?
       LibBSON.bson_append_code(handle, key, key.bytesize, value.code)
     else
@@ -188,11 +188,11 @@ class BSON
     end
   end
 
-  def []=(key, value : BSON)
+  def []=(key : String, value : BSON)
     LibBSON.bson_append_document(handle, key, key.bytesize, value)
   end
 
-  def []=(key, value : Regex)
+  def []=(key : String, value : Regex)
     modifiers = value.options
     options =
       if modifiers

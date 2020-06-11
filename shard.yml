@@ -1,5 +1,7 @@
 name: mongo
-version: 0.1.5
+version: 0.1.8
+
+crystal: 0.35.0
 
 authors:
   - Jerome Gravel-Niquet <jeromegn@gmail.com>
@@ -8,6 +10,6 @@ description: |
   Bindings for MongoDB C Driver.
 
 libraries:
-  libmongoc: 1.1.15
+  libmongoc: 1.16.2
 
 license: MIT
