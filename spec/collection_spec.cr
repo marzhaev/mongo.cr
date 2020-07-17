@@ -146,4 +146,31 @@ describe Mongo::Collection do
       col.name.should eq("new_name")
     end
   end
+
+  it "should be able to distinct" do
+    with_collection do |col|
+      col.insert({"name" => "counter", "val" => 0})
+      col.insert({"name" => "counter_two", "val" => 0})
+      doc = col.distinct("name").next
+      fail "inspected a document" unless doc.is_a?(BSON)
+      doc["ok"].should eq(1.0)
+      nested = doc["values"]
+      fail "inspected a document" unless nested.is_a?(BSON)
+      nested.count.should eq(2)
+    end
+  end
+
+  it "should be able to distinct with query" do
+    with_collection do |col|
+      col.insert({"name" => "counter", "val" => 0})
+      col.insert({"name" => "counter_two", "val" => 0})
+      query = {"name" => "counter"}.to_bson
+      doc = col.distinct("name", query).next
+      fail "inspected a document" unless doc.is_a?(BSON)
+      doc["ok"].should eq(1.0)
+      nested = doc["values"]
+      fail "inspected a document" unless nested.is_a?(BSON)
+      nested.count.should eq(1)
+    end
+  end
 end

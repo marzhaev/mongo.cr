@@ -84,6 +84,11 @@ class Mongo::Collection
     end
   end
 
+  def distinct(key, query = BSON.new)
+    cmd = { "distinct" => name, "key" => key, "query" => query }
+    command(cmd)
+  end
+
   # This method requests that a collection be dropped, including all indexes
   # associated with the collection.
   def drop
