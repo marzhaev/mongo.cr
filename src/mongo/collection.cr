@@ -86,7 +86,12 @@ class Mongo::Collection
 
   def distinct(key, query = BSON.new)
     cmd = { "distinct" => name, "key" => key, "query" => query }
-    command(cmd)
+    resp = command_simple(cmd)
+    if resp["values"]?
+      resp["values"].as(BSON).decode
+    else
+      [] of Nil
+    end
   end
 
   # This method requests that a collection be dropped, including all indexes

@@ -151,12 +151,9 @@ describe Mongo::Collection do
     with_collection do |col|
       col.insert({"name" => "counter", "val" => 0})
       col.insert({"name" => "counter_two", "val" => 0})
-      doc = col.distinct("name").next
-      fail "inspected a document" unless doc.is_a?(BSON)
-      doc["ok"].should eq(1.0)
-      nested = doc["values"]
-      fail "inspected a document" unless nested.is_a?(BSON)
-      nested.count.should eq(2)
+      doc = col.distinct("name")
+      doc.size.should eq(2)
+      doc.should contain("counter_two")
     end
   end
 
@@ -165,12 +162,10 @@ describe Mongo::Collection do
       col.insert({"name" => "counter", "val" => 0})
       col.insert({"name" => "counter_two", "val" => 0})
       query = {"name" => "counter"}.to_bson
-      doc = col.distinct("name", query).next
-      fail "inspected a document" unless doc.is_a?(BSON)
-      doc["ok"].should eq(1.0)
-      nested = doc["values"]
-      fail "inspected a document" unless nested.is_a?(BSON)
-      nested.count.should eq(1)
+      doc = col.distinct("name", query)
+      doc.size.should eq(1)
+      doc.should contain("counter")
+      doc.should_not contain("counter_two")
     end
   end
 end
