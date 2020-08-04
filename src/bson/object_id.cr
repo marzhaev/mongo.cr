@@ -54,5 +54,9 @@ class BSON
     def to_json(json : JSON::Builder)
       json.string(self.to_s[0..23])
     end
+
+    def self.is_valid?(str : String) : Bool
+      str.matches?(/^[0-9a-fA-F]{24}$/)
+    end
   end
 end

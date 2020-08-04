@@ -38,6 +38,20 @@ describe BSON::ObjectId do
     oid2 = BSON::ObjectId.new
     oid1.should be < oid2
   end
+
+  it "should be able to validate a valid string for ObjectId" do
+    oid = BSON::ObjectId.new
+    str = oid.to_s[0..23]
+    other = BSON::ObjectId.is_valid?(str)
+    other.should eq(true)
+  end
+
+  it "should be able to not validate an invalid string for ObjectId" do
+    oid = BSON::ObjectId.new
+    str = oid.to_s[0..23] + "a"
+    other = BSON::ObjectId.is_valid?(str)
+    other.should eq(false)
+  end
 end
 
 
