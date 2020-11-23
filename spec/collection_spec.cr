@@ -22,6 +22,19 @@ describe Mongo::Collection do
     end
   end
 
+  it "should be able to count documents with and without filter" do
+    with_collection do |col|
+      doc1 = {"cust_id" => "A123", "amount" => 500, "status" => "A"}.to_bson
+      col.insert doc1
+      doc2 = {"cust_id" => "B456", "amount" => 250, "status" => "A"}.to_bson
+      col.insert doc2
+
+      col.count_documents.should eq(2)
+      col.estimated_document_count.should eq(2)
+      col.count_documents({"cust_id" => "B456"}).should eq(1)
+    end
+  end
+
   it "should be able to drop a collection" do
     with_collection do |col|
       col.insert({"name" => "Bob"})

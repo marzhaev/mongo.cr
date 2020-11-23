@@ -191,6 +191,12 @@ lib LibMongoC
                                                                      query: BSON, skip: Int64, limit: Int64,
                                                                      opts: BSON, prefs: ReadPrefs,
                                                                      error: BSONError*) : Int64
+  fun collection_count_documents = mongoc_collection_count_documents(collection: Collection, filter: BSON,
+                                                                    opts: BSON, prefs: ReadPrefs, reply: BSON,
+                                                                    error: BSONError* ) : Int64
+  fun collection_estimated_document_count = mongoc_collection_estimated_document_count(collection: Collection, opts: BSON,
+                                                                    prefs: ReadPrefs, reply: BSON,
+                                                                    error: BSONError*) : Int64
   fun collection_drop = mongoc_collection_drop(collection: Collection, error: BSONError*) : Bool
   fun collection_drop_index = mongoc_collection_drop_index(collection: Collection, index_name: UInt8*,
                                                            error: BSONError*) : Bool

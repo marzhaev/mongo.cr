@@ -70,6 +70,7 @@ class Mongo::Collection
   end
 
   # Counts the number of documents matching the specified criteria.
+  @[Deprecated("Use `#count_documents` or `#estimated_document_count` instead")]
   def count(query = BSON.new, flags = LibMongoC::QueryFlags::NONE,
             skip = 0, limit = 0, opts = nil, prefs = nil)
     if opts
@@ -82,6 +83,18 @@ class Mongo::Collection
       raise BSON::BSONError.new(pointerof(error2)) if ret == -1
       ret
     end
+  end
+
+  def count_documents(query = BSON.new, opts = BSON.new, prefs = nil)
+    ret = LibMongoC.collection_count_documents(self, query.to_bson, opts.to_bson, prefs, out reply, out error)
+    raise BSON::BSONError.new(pointerof(error)) if ret == -1
+    ret
+  end
+
+  def estimated_document_count(opts = BSON.new, prefs = nil)
+    ret = LibMongoC.collection_estimated_document_count(self, opts.to_bson, prefs, out reply, out error)
+    raise BSON::BSONError.new(pointerof(error)) if ret == -1
+    ret
   end
 
   def distinct(key, query = BSON.new)
