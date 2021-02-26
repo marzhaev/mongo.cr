@@ -4,7 +4,7 @@ require "socket"
 module Mongo::Stream
   @@registry = {} of LibMongoC::Stream* => { Socket, String, UInt16, Bool }
 
-  def self.initiator(uri : LibMongoC::Uri, host : LibMongoC::HostList, user_data : Void*, error : LibBSON::BSONError*)
+  def self.initiator(uri : LibMongoC::Uri, host : LibMongoC::HostList, user_data : Void*, error : LibBSON::BSONError*) : LibMongoC::Stream
     begin
       # The socket cannot be connected right away, because the code needs to block the event loop.
       # If any async I/O syscall is used to connect then another Fiber could run, cause a deadlock

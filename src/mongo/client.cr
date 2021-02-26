@@ -28,7 +28,10 @@ class Mongo::Client
   # Use this method to set up the crystal implementation of underlying stream API.
   # This is useful to make mongo client's IO operations to play nicely with Fiber API.
   def setup_stream
-    LibMongoC.client_set_stream_initiator(self, -> Stream.initiator, nil)
+    inita = LibMongoC::StreamInitiator.new
+    inita.uri = LibMongoC.client_get_uri(self)
+    inita.host_list = LibMongoC.uri_get_hosts(inita.uri)
+    LibMongoC.client_set_stream_initiator(self, inita, nil)
   end
 
   # Returns a Uri instance used to create Client.

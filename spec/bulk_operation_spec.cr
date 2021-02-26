@@ -12,7 +12,7 @@ describe Mongo::BulkOperation do
 
       fail "Expected BSON" unless result.is_a?(BSON)
       result["nInserted"].should eq(2)
-      col.count.should eq(2)
+      col.count_documents.should eq(2)
     end
   end
 
@@ -56,7 +56,7 @@ describe Mongo::BulkOperation do
       fail "Expected BSON" unless result.is_a?(BSON)
       result["nRemoved"].should eq(2)
 
-      col.count.should eq(1)
+      col.count_documents.should eq(1)
     end
   end
 

@@ -13,7 +13,7 @@ describe Mongo::Collection do
       col.insert doc3
       doc4 = {"cust_id" => "A123", "amount" => 300, "status" => "D"}.to_bson
       col.insert doc4
-      col.count.should eq(4)
+      col.count_documents.should eq(4)
 
       pipeline = [{"$match" => {"status" => "A"}},
                   {"$group" => {"_id" => "$cust_id", "total" => {"$sum" => "$amount"}}}].to_bson
@@ -56,7 +56,7 @@ describe Mongo::Collection do
       cursor.next.should be_nil
       # cursor.more.should be_false
       col.remove({"name" => "Bob"})
-      col.count.should eq(0)
+      col.count_documents.should eq(0)
     end
   end
 
@@ -86,7 +86,7 @@ describe Mongo::Collection do
       docs = [{"name" => "Bob"}, {"name" => "Joe"}, {"name" => "Steve"}]
       col.insert_bulk docs
 
-      col.count.should eq(3)
+      col.count_documents.should eq(3)
 
     end
   end
