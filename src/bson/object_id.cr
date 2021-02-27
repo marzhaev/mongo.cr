@@ -22,6 +22,10 @@ class BSON
       LibBSON.bson_oid_hash(@handle)
     end
 
+    def to_bson
+      self
+    end
+
     def to_s
       buf = StaticArray(UInt8, 25).new(0_u8)
       LibBSON.bson_oid_to_string(@handle, buf)

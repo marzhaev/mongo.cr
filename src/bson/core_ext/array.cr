@@ -27,6 +27,9 @@ class Array(T)
       when BSON::Code then bson[i.to_s] = item
       when BSON then bson[i.to_s] = item
       when Regex then bson[i.to_s] = item
+      else
+        # Allows serialization of custom structures
+        bson[i.to_s] = item.to_bson
       end
     end
     bson
