@@ -87,12 +87,14 @@ class Mongo::Collection
 
   def count_documents(query = BSON.new, opts = BSON.new, prefs = nil)
     ret = LibMongoC.collection_count_documents(self, query.to_bson, opts.to_bson, prefs, out reply, out error)
+    LibBSON.bson_destroy(pointerof(reply))
     raise BSON::BSONError.new(pointerof(error)) if ret == -1
     ret
   end
 
   def estimated_document_count(opts = BSON.new, prefs = nil)
     ret = LibMongoC.collection_estimated_document_count(self, opts.to_bson, prefs, out reply, out error)
+    LibBSON.bson_destroy(pointerof(reply))
     raise BSON::BSONError.new(pointerof(error)) if ret == -1
     ret
   end
