@@ -122,7 +122,7 @@ class Mongo::GridFS::File < IO
 
   # This function performs a scattered read from file, potentially blocking to
   # read from the MongoDB server.
-  def read(slice : Slice(UInt8))
+  def read(slice : Slice(UInt8)) : Int32
     iov = LibMongoC::IOVec.new
     iov.ion_base = slice.to_unsafe
     iov.ion_len = slice.bytesize.to_u64
@@ -132,7 +132,7 @@ class Mongo::GridFS::File < IO
                                       LibC::SizeT.new(0),
                                       @timeout_msec.to_u32)
     check_error
-    len
+    len.to_i32
   end
 
   # Performs a gathered write to the underlying gridfs file.
