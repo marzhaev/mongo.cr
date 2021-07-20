@@ -26,7 +26,7 @@ class BSON
     if handle.null? && error
       raise BSONError.new(pointerof(error))
     end
-    new(handle,true)
+    new(handle)
   end
 
   def self.not_initialized
@@ -268,7 +268,7 @@ class BSON
     end
   end
 
-  def each_pair
+  def each_pair : IterPair
     IterPair.new(self)
   end
 
@@ -320,11 +320,14 @@ class BSON
                Array(Field) |
                Hash(String, Field)
 
-  def decode
+  def decode : (Array(BSON::Field) | Hash(String, BSON::Field))
     if array?
       each_with_object([] of Field) {|v, res| res << decode_value(v.value)}
     else
-      each_pair.each_with_object({} of String => Field) {|pair, h| h[pair[0]] = decode_value(pair[1].value)}
+      each_pair.each_with_object({} of String => Field) do |pair, h|
+        tuple = pair.as(Tuple(String, BSON::Value))
+        h[tuple[0]] = decode_value(tuple[1].value)
+      end
     end
   end
 

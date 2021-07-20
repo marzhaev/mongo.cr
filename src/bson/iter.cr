@@ -30,7 +30,7 @@ class BSON
       rewind
     end
 
-    def next
+    def next : (Iterator::Stop | Tuple(String, BSON::Value))
       return stop unless LibBSON.bson_iter_next(@iter)
       key = LibBSON.bson_iter_key(@iter)
       val = LibBSON.bson_iter_value(@iter)
