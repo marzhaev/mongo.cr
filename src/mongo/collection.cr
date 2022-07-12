@@ -154,10 +154,19 @@ class Mongo::Collection
   # {a:1}. If you would like to specify options such as a sort order, the query
   # must be placed inside of {"$query": {}} as specified by the server
   # documentation.
-  def find(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE,
-           skip = 0, limit = 0, batch_size = 0, prefs = nil)
-    Cursor.new LibMongoC.collection_find(self, flags, skip.to_u32, limit.to_u32, batch_size.to_u32,
-                                         query.to_bson, fields.to_bson, prefs)
+  def find(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE, skip = 0, limit = 0, batch_size = 0, prefs = nil)
+    {% if flag?(:mongo_queries) %}
+      Log.info { "MONGO_DB Query: find #{query} on #{name}" } if ENV["MONGO_QUERIES"]?
+    {% end %}
+    {% if flag?(:mongo_slow) %}
+      start = Time.monotonic
+    {% end %}
+    v = Cursor.new LibMongoC.collection_find(self, flags, skip.to_u32, limit.to_u32, batch_size.to_u32, query.to_bson, fields.to_bson, prefs)
+    {% if flag?(:mongo_slow) %}
+      time_taken = (Time.monotonic - start).total_seconds
+      Log.info { "MONGO_DB Slow query: find #{query} on #{name} of #{time_taken} seconds" } if time_taken >= 0.05
+    {% end %}
+    v
   end
 
   # This method shall execute a query on the underlying collection.
@@ -174,12 +183,22 @@ class Mongo::Collection
   end
 
   # The same as `find` but returns a first document from the cursor.
-  def find_one(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE,
-               skip = 0, prefs = nil)
+  def find_one(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE, skip = 0, prefs = nil)
+    {% if flag?(:mongo_queries) %}
+      Log.info { "MONGO_DB Query: find_one #{query} on #{name}" } if ENV["MONGO_QUERIES"]?
+    {% end %}
+    {% if flag?(:mongo_slow) %}
+      start = Time.monotonic
+    {% end %}
     cursor = find(query, fields, flags, skip: skip, prefs: prefs)
-    cursor.next.tap do
+    v = cursor.next.tap do
       cursor.close
     end
+    {% if flag?(:mongo_slow) %}
+      time_taken = (Time.monotonic - start).total_seconds
+      Log.info { "MONGO_DB Slow query: find #{query} on #{name} of #{time_taken} seconds" } if time_taken >= 0.05
+    {% end %}
+    v
   end
 
   # This method shall insert document into collection.  If no _id element is
@@ -201,9 +220,15 @@ class Mongo::Collection
   end
 
   # This method shall update documents in collection that match selector.  By
-  # default, updates only a single document. Set flags to `UPDATE_MULTI_UPDATE`
+  # default, updates only a single document. Set flags to `MULTI_UPDATE`
   # to update multiple documents.
   def update(selector, update, flags = LibMongoC::UpdateFlags::NONE, write_concern = nil)
+    unless LibMongoC.collection_update(self, flags, selector.to_bson, update.to_bson, write_concern, out error)
+      raise BSON::BSONError.new(pointerof(error))
+    end
+  end
+
+  def update_many(selector, update, flags = LibMongoC::UpdateFlags::MULTI_UPDATE, write_concern = nil)
     unless LibMongoC.collection_update(self, flags, selector.to_bson, update.to_bson, write_concern, out error)
       raise BSON::BSONError.new(pointerof(error))
     end
