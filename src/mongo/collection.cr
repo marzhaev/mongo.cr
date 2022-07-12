@@ -156,7 +156,7 @@ class Mongo::Collection
   # documentation.
   def find(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE, skip = 0, limit = 0, batch_size = 0, prefs = nil)
     {% if flag?(:mongo_queries) %}
-      Log.info { "MONGO_DB Query: find #{query} on #{name}" } if ENV["MONGO_QUERIES"]?
+      Log.info { "MONGO_DB Query: find #{query} on #{name}" }
     {% end %}
     {% if flag?(:mongo_slow) %}
       start = Time.monotonic
@@ -185,7 +185,7 @@ class Mongo::Collection
   # The same as `find` but returns a first document from the cursor.
   def find_one(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE, skip = 0, prefs = nil)
     {% if flag?(:mongo_queries) %}
-      Log.info { "MONGO_DB Query: find_one #{query} on #{name}" } if ENV["MONGO_QUERIES"]?
+      Log.info { "MONGO_DB Query: find_one #{query} on #{name}" }
     {% end %}
     {% if flag?(:mongo_slow) %}
       start = Time.monotonic

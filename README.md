@@ -55,6 +55,10 @@ collection.find({ "age" => { "$gt" => 30 } }) do |doc|
 end
 ```
 
+Optionally logs queries by passing compile flags
+"--define mongo_queries" to show all queries called.
+"--define mongo_slow" to show queries executed in more than 50 milliseconds
+
 # License
 
 MIT clause - see LICENSE for more details.
