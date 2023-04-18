@@ -18,6 +18,12 @@ class BSON
       initialize(handle)
     end
 
+    def initialize(pull : JSON::PullParser)
+      if pull.kind.string? && (raw = pull.read_string)
+        initialize(raw)
+      end
+    end
+
     def hash
       LibBSON.bson_oid_hash(@handle)
     end
