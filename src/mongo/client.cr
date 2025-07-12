@@ -41,30 +41,24 @@ class Mongo::Client
 
   # This method executes a command on the server using the database and command
   # specification provided.
-  def command(db_name, query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE,
-              skip = 0, limit = 0, batch_size = 0, prefs = nil)
-    Cursor.new LibMongoC.client_command(self, db_name, flags, skip.to_u32, limit.to_u32, batch_size.to_u32,
-                                        query, fields, prefs)
+  def command(db_name, query, opts = BSON.new)
+    reply = LibBSON.bson_new
+    error = uninitialized LibBSON::BSONError
+    unless LibMongoC.client_command_with_opts(self, db_name, query, opts, reply, pointerof(error))
+      raise BSON::BSONError.new(pointerof(error))
+    end
+    BSON.new(reply)
   end
 
-  # This method executes a command on the server using the database and command
-  # specification provided.  Result is passed to the provided block.
-  def command(db_name, query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE,
-              skip = 0, limit = 0, batch_size = 0, prefs = nil)
-    command(db_name, query, fields, flags, skip, limit, batch_size, prefs).each do |doc|
-      yield doc
-    end
+  # Block form: yield the BSON document
+  def command(db_name, query, opts = BSON.new)
+    yield command(db_name, query, opts)
   end
 
   # This is a simplified interface to command execution. It returns the first
   # document from the result cursor.
-  def command_simple(db_name, command, prefs = nil)
-    unless LibMongoC.client_command_simple(self, db_name, command, prefs, out reply, out error)
-      raise BSON::BSONError.new(pointerof(error))
-    end
-    repl = BSON.copy_from pointerof(reply)
-    LibBSON.bson_destroy(pointerof(reply))
-    repl
+  def command_simple(db_name, command, opts = BSON.new)
+    command(db_name, command, opts)
   end
 
   def kill_cursor(cursor_id)
@@ -124,13 +118,17 @@ class Mongo::Client
   end
 
   # Queries the server for the current server status.
-  def server_status(prefs = nil)
-    unless LibMongoC.client_get_server_status(self, prefs, out reply, out error)
+  # Updated for MongoDB C Driver 2.0.0 - use command instead of client_get_server_status
+  def server_status(db_name)
+    reply = LibBSON.bson_new
+    error = uninitialized LibBSON::BSONError
+    cmd = { "serverStatus" => 1 }.to_bson
+    prefs = ReadPrefs.new
+
+    unless LibMongoC.client_command_simple(self, db_name, cmd, prefs, reply, pointerof(error))
       raise BSON::BSONError.new(pointerof(error))
     end
-    repl = BSON.copy_from pointerof(reply)
-    LibBSON.bson_destroy(pointerof(reply))
-    repl
+    BSON.new(reply)
   end
 
   # Create GridFS instance.
@@ -227,7 +225,8 @@ class Mongo::ClientPool
     LibMongoC.client_pool_max_size(self,size)
   end
   def min_size=(size : UInt32)
-    LibMongoC.client_pool_min_size(self,size)
+    # client_pool_min_size removed in MongoDB C Driver 2.0.0
+    # Pool sizing is now handled differently - this is a no-op for compatibility
   end
   def invalidate
     @valid = false

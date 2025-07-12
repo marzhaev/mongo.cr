@@ -150,55 +150,26 @@ class Mongo::Collection
   end
 
   # This method shall execute a query on the underlying collection.
-  # If no options are necessary, query can simply contain a query such as
-  # {a:1}. If you would like to specify options such as a sort order, the query
-  # must be placed inside of {"$query": {}} as specified by the server
-  # documentation.
-  def find(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE, skip = 0, limit = 0, batch_size = 0, prefs = nil)
-    {% if flag?(:mongo_queries) %}
-      Log.info { "MONGO_DB Query: find #{query} on #{name}" }
-    {% end %}
-    {% if flag?(:mongo_slow) %}
-      start = Time.monotonic
-    {% end %}
-    v = Cursor.new LibMongoC.collection_find(self, flags, skip.to_u32, limit.to_u32, batch_size.to_u32, query.to_bson, fields.to_bson, prefs)
-    {% if flag?(:mongo_slow) %}
-      time_taken = (Time.monotonic - start).total_seconds
-      Log.info { "MONGO_DB Slow query: find #{query} on #{name} of #{time_taken} seconds" } if time_taken >= 0.05
-    {% end %}
-    v
+  def find(query : BSON, opts = BSON.new, prefs : ReadPrefs? = nil) : Cursor
+    Cursor.new LibMongoC.collection_find_with_opts(self, query.to_bson, opts, prefs)
   end
 
   # This method shall execute a query on the underlying collection.
   # If no options are necessary, query can simply contain a query such as
-  # {a:1}. If you would like to specify options such as a sort order, the query
-  # must be placed inside of {"$query": {}} as specified by the server
-  # documentation.
+  # {a:1}.
   # The results are passed to the specified block.
-  def find(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE,
-           skip = 0, limit = 0, batch_size = 0, prefs = nil)
-    find(query, fields, flags, skip, limit, batch_size, prefs).each do |doc|
+  def find(query : BSON, opts = BSON.new, prefs : ReadPrefs? = nil)
+    find(query, opts, prefs).each do |doc|
       yield doc
     end
   end
 
   # The same as `find` but returns a first document from the cursor.
-  def find_one(query, fields = BSON.new, flags = LibMongoC::QueryFlags::NONE, skip = 0, prefs = nil)
-    {% if flag?(:mongo_queries) %}
-      Log.info { "MONGO_DB Query: find_one #{query} on #{name}" }
-    {% end %}
-    {% if flag?(:mongo_slow) %}
-      start = Time.monotonic
-    {% end %}
-    cursor = find(query, fields, flags, skip: skip, prefs: prefs)
-    v = cursor.next.tap do
+  def find_one(query : BSON, opts = BSON.new, prefs : ReadPrefs? = nil)
+    cursor = find(query, opts, prefs)
+    cursor.next.tap do
       cursor.close
     end
-    {% if flag?(:mongo_slow) %}
-      time_taken = (Time.monotonic - start).total_seconds
-      Log.info { "MONGO_DB Slow query: find #{query} on #{name} of #{time_taken} seconds" } if time_taken >= 0.05
-    {% end %}
-    v
   end
 
   # This method shall insert document into collection.  If no _id element is
@@ -228,10 +199,22 @@ class Mongo::Collection
     end
   end
 
-  def update_many(selector, update, flags = LibMongoC::UpdateFlags::MULTI_UPDATE, write_concern = nil)
-    unless LibMongoC.collection_update(self, flags, selector.to_bson, update.to_bson, write_concern, out error)
+  def update_one(selector, update, opts = BSON.new) : BSON
+    unless LibMongoC.collection_update_one(self, selector.to_bson, update.to_bson, opts.to_bson, out reply, out error)
       raise BSON::BSONError.new(pointerof(error))
     end
+    doc = BSON.copy_from pointerof(reply)
+    LibBSON.bson_destroy(pointerof(reply))
+    doc
+  end
+
+  def update_many(selector, update, opts = BSON.new) : BSON
+    unless LibMongoC.collection_update_many(self, selector.to_bson, update.to_bson, opts.to_bson, out reply, out error)
+      raise BSON::BSONError.new(pointerof(error))
+    end
+    doc = BSON.copy_from pointerof(reply)
+    LibBSON.bson_destroy(pointerof(reply))
+    doc
   end
 
   # This method shall save a document into collection. If the document has an

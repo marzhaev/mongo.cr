@@ -1,6 +1,6 @@
 require "../bson/lib_bson"
 
-@[Link("mongoc-1.0")]
+@[Link("mongoc2")]
 lib LibMongoC
   enum LogLevel
     ERROR
@@ -203,9 +203,7 @@ lib LibMongoC
   fun collection_create_index = mongoc_collection_create_index(collection: Collection, keys: BSON,
                                                                opt: IndexOpt*, error: BSONError*) : Bool
   fun collection_find_indexes = mongoc_collection_find_indexes(collection: Collection, error: BSONError*) : Cursor
-  fun collection_find = mongoc_collection_find(collection: Collection, flags: QueryFlags, skip: UInt32, limit: UInt32,
-                                               batch_size: UInt32, query: BSON, fields: BSON,
-                                               prefs: ReadPrefs) : Cursor
+  fun collection_find_with_opts = mongoc_collection_find_with_opts(collection: Collection, filter: BSON, opts: BSON, prefs: ReadPrefs) : Cursor
   fun collection_insert = mongoc_collection_insert(collection: Collection, flags: InsertFlags, document: BSON,
                                                    write_concern: WriteConcern, error: BSONError*) : Bool
   fun collection_insert_bulk = mongoc_collection_insert_bulk(collection: Collection, flags: InsertFlags,
@@ -214,6 +212,12 @@ lib LibMongoC
   fun collection_update = mongoc_collection_update(collection: Collection, flags: UpdateFlags, selector: BSON,
                                                    update: BSON, write_concern: WriteConcern,
                                                    error: BSONError*) : Bool
+  fun collection_update_one = mongoc_collection_update_one(collection: Collection, selector: BSON,
+                                                          update: BSON, opts: BSON,
+                                                          reply: BSON, error: BSONError*) : Bool
+  fun collection_update_many = mongoc_collection_update_many(collection: Collection, selector: BSON,
+                                                            update: BSON, opts: BSON,
+                                                            reply: BSON, error: BSONError*) : Bool
   fun collection_save = mongoc_collection_save(collection: Collection, document: BSON,
                                                write_concern: WriteConcern, error: BSONError*) : Bool
   fun collection_remove = mongoc_collection_remove(collection: Collection, flags: RemoveFlags,
@@ -368,9 +372,7 @@ lib LibMongoC
   fun client_set_stream_initiator = mongoc_client_set_stream_initiator(client: Client, initiator: StreamInitiator, user_data: Void*)
   fun client_new_from_uri = mongoc_client_new_from_uri(uri: Uri) : Client
   fun client_get_uri = mongoc_client_get_uri(client: Client) : Uri
-  fun client_command = mongoc_client_command(client: Client, db_name: UInt8*, flags: QueryFlags,
-                                             skip: UInt32, limit: UInt32, batch_size: UInt32,
-                                             query: BSON, fields: BSON, prefs: ReadPrefs) : Cursor
+  fun client_command_with_opts = mongoc_client_command_with_opts(client: Client, db_name: UInt8*, command: BSON, opts: BSON, reply: BSON, error: BSONError*) : Bool
   fun client_kill_cursor = mongoc_client_kill_cursor(client: Client, cursor_id: Int64)
   fun client_command_simple = mongoc_client_command_simple(client: Client, db_name: UInt8*, command: BSON,
                                                            prefs: ReadPrefs, reply: BSON, error: BSONError*) : Bool
@@ -379,15 +381,12 @@ lib LibMongoC
   fun client_get_collection = mongoc_client_get_collection(client: Client, db: UInt8*, collection: UInt8*) : Collection
   fun client_get_database_names = mongoc_client_get_database_names(client: Client, error: BSONError*) : UInt8**
   fun client_find_databases = mongoc_client_find_databases(client: Client, error: BSONError*) : Cursor
-  fun client_get_server_status = mongoc_client_get_server_status(client: Client, prefs: ReadPrefs,
-                                                                 reply: BSON, error: BSONError*) : Bool
   fun client_get_max_message_size = mongoc_client_get_max_message_size(client: Client) : Int32
   fun client_get_max_bson_size = mongoc_client_get_max_bson_size(client: Client) : Int32
   fun client_get_write_concern = mongoc_client_get_write_concern(client: Client) : WriteConcern
   fun client_set_write_concern = mongoc_client_set_write_concern(client: Client, write_concern: WriteConcern)
   fun client_get_read_prefs = mongoc_client_get_read_prefs(client: Client) : ReadPrefs
   fun client_set_read_prefs = mongoc_client_set_read_prefs(client: Client, prefs: ReadPrefs)
-  # fun client_set_ssl_opts = mongoc_client_set_ssl_opts(client: Client, opts: SSLOpt)
   fun client_get_gridfs = mongoc_client_get_gridfs(client: Client, db: UInt8*, prefix: UInt8*, error: BSONError*) : GridFS
 
   type ClientPool = Void*
@@ -397,8 +396,6 @@ lib LibMongoC
   fun client_pool_push = mongoc_client_pool_push (pool: ClientPool, client : Client)
   fun client_pool_try_pop = mongoc_client_pool_try_pop (pool: ClientPool) : Client
   fun client_pool_max_size = mongoc_client_pool_max_size (pool: ClientPool,max_pool_size: UInt32)
-  fun client_pool_min_size = mongoc_client_pool_min_size (pool: ClientPool,min_pool_size: UInt32)
-  #fun client_pool_set_ssl_opts = mongoc_client_pool_set_ssl_opts (pool : ClientPool,opts: SSLOpt)
   fun client_pool_set_error_api = mongoc_client_pool_set_error_api (pool: ClientPool, version: Int32) : Bool
   fun client_pool_set_appname = mongoc_client_pool_set_appname (pool: ClientPool,appname: UInt8*) : Bool
 

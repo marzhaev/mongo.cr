@@ -1,6 +1,3 @@
-# Credits to washu/mongo.cr
-
-@[Link("bson-1.0")]
 lib LibBSON
   alias BSONContext = Void*
 
